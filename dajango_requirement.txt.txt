@@ -18,34 +18,3 @@ sqlparse==0.4.4
 tzdata==2023.4
 uritemplate==4.1.1
 urllib3==2.1.0
-
-
-============================================
-
-server {
-    listen 80;
-    server_name your_domain.com;
-
-    # Serve ReactJS static files
-    location / {
-        root /path/to/your/reactjs/build;
-        try_files $uri /index.html;
-    }
-
-    # Serve Django backend
-    location /api/ {
-        include proxy_params;
-        proxy_pass http://127.0.0.1:8000;  # Assuming Django is running on localhost:8000
-    }
-    
-    # Serve Django static files
-    location /static/ {
-        alias E:/Backend/success_tool/static/;
-    }
-
-    # Serve Django media files (optional, if you have file uploads)
-    location /media/ {
-        alias E:/Backend/success_tool/media/;
-    }
-}
-
