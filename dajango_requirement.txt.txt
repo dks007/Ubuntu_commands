@@ -32,12 +32,20 @@ server {
         try_files $uri /index.html;
     }
 
-    # Proxy requests to Django backend
+    # Serve Django backend
     location /api/ {
+        include proxy_params;
         proxy_pass http://127.0.0.1:8000;  # Assuming Django is running on localhost:8000
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # Serve Django static files
+    location /static/ {
+        alias E:/Backend/success_tool/static/;
+    }
+
+    # Serve Django media files (optional, if you have file uploads)
+    location /media/ {
+        alias E:/Backend/success_tool/media/;
     }
 }
+
