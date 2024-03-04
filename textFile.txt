@@ -1,1 +1,5 @@
-Access to XMLHttpRequest at 'https://successpilot.corpnet.ifsworld.com:48081/api/issue-listing/?start=0&max_result=20' from origin 'https://successpilot.corpnet.ifsworld.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+SSLError
+requests.exceptions.SSLError: HTTPSConnectionPool(host='ifsdev.atlassian.net', port=443): Max retries exceeded with url: /rest/api/3/search (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1000)')))
+
+Traceback (most recent call last)
+File "C:\Program Files\Python312\Lib\site-packages\urllib3\connectionpool.py", line 467, in _make_request
