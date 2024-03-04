@@ -1,1 +1,5 @@
-pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+npm ERR! code SELF_SIGNED_CERT_IN_CHAIN
+npm ERR! errno SELF_SIGNED_CERT_IN_CHAIN
+npm ERR! request to https://registry.npmjs.org/react-toastify failed, reason: self-signed certificate in certificate chain
+ 
+npm ERR! A complete log of this run can be found in: C:\Users\Administrator\AppData\Local\npm-cache\_logs\2024-03-04T15_57_10_706Z-debug-0.log
