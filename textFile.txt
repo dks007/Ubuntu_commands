@@ -1,1 +1,19 @@
-pip install --upgrade certifi
+const handleDownload = () => {
+    console.log("Download URL:", issue.download_link); // Debugging: log the URL
+  
+    if (issue.download_link) {
+      const encodedUrl = encodeURI(issue.download_link); // Ensure the URL is correctly encoded
+      const anchor = document.createElement('a');
+      anchor.href = encodedUrl;
+      anchor.setAttribute('download', true); // Suggest that the link is downloaded rather than navigated to
+      document.body.appendChild(anchor); // Append anchor to the body
+  
+      anchor.click(); // Simulate click to initiate download
+  
+      setTimeout(() => { // Add a slight delay before removing the anchor
+        document.body.removeChild(anchor);
+      }, 100); // Delay in milliseconds
+    } else {
+      console.error("No download URL provided.");
+    }
+  };
