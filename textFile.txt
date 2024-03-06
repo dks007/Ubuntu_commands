@@ -1,8 +1,1 @@
-// Capability selection validation
-  if (!selectedValue.capability?.value) {
-    setSelectBoxErrors((prevState) => ({
-      ...prevState,
-      capability: "Please select a capability.",
-    }));
-    hasErrors = true;
-  }
+https___successpilot.corpnet.ifsworld.com_report_EBP - SAA9 - IFS Cloud - Cloud Services - Additional Service Components - CS0205743.docx
