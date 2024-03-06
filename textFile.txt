@@ -1,1 +1,12 @@
-https___successpilot.corpnet.ifsworld.com_report_EBP - SAA9 - IFS Cloud - Cloud Services - Additional Service Components - CS0205743.docx
+case '4': // Created
+  // Prefix to remove from the filename
+  const prefixToRemove = 'https://successpilot.corpnet.ifsworld.com/report_';
+  // Extract the filename from the download link and remove the prefix
+  const filename = issue.download_link.replace(prefixToRemove, '');
+  return (
+    <MenuItem>
+      <a href={issue.download_link} download={filename}>
+        <DownloadIcon /> Download
+      </a>
+    </MenuItem>
+  )
