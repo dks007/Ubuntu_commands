@@ -1,3 +1,27 @@
-transforming (92) node_modules\use-sync-external-store\cjs\use-sync-external-store-shim\with-selector.production.min.js
-../../src/assets/Images/404-bg.svg referenced in C:/Users/Administrator/success-pilot-interface/src/assets/scss/styles.scss didn't resolve at build time, it will rem
-ain unchanged to be resolved at runtime
+import os
+from elasticsearch import Elasticsearch
+from requests.auth import HTTPBasicAuth
+import requests
+#FILEPATH = os.path.join(os.path.abspath(os.sep),"home","developer","p1_py","sf")
+#USERLOGSPATH = os.path.join(os.path.abspath(os.sep),"home","developer","p1_py","logs","userlogs")
+
+FILEFORMAT = "*.log*"
+LOGFILEFORMAT = "*.log*"
+es = Elasticsearch([{'host': '10.88.22.40', 'port': 9200, 'timeout': 600}] ,http_auth=HTTPBasicAuth("sstam-user", "kGu943TgeCiGyUZPLMls"), )
+#es = Elasticsearch([{'host': '10.88.22.40', 'port': 9200, 'timeout': 300},{'host': '10.88.22.40', 'port': 9200, 'timeout': 300}])
+_debug_log = True
+
+
+
+# test query
+
+query = {
+    "size":5,
+    "query": {"match_all:{}"}
+}
+
+#perform the query
+result = es.search(index="elasticsearchweu:fluentd-common-prod", body=query)
+
+# process the result
+print(result)
