@@ -1,33 +1,3 @@
-from elasticsearch import Elasticsearch
-
-# Elasticsearch connection details
-es_host = '10.88.22.40'  # Host address
-es_port = 9200  # Port number
-
-# Credentials for HTTP authentication
-es_username = "sstam-user"
-es_password = "kGu943TgeCiGyUZPLMls"
-
-# Create an Elasticsearch client with authentication and timeout specified
-es = Elasticsearch(
-    hosts=[{'host': es_host, 'port': es_port}],
-    http_auth=(es_username, es_password),
-    timeout=600  # Setting the timeout parameter outside the hosts dictionary
-)
-
-# Define a search query
-query = {
-    "size": 5,
-    "query": {
-        "match_all": {}
-    }
-}
-
-# Specify the index you want to search
-index_name = "elasticsearchweu:fluentd-common-prod"
-
-# Perform the search query
-result = es.search(index=index_name, body=query)
-
-# Process and print the result
-print(result)
+File "C:\Users\dishin\AppData\Local\Programs\Python\Python312\Lib\site-packages\elasticsearch\_sync\client\utils.py", line 183, in host_mapping_to_node_config
+    raise ValueError(
+ValueError: Can't specify the options 'timeout' via a dictionary in 'hosts', only 'host', 'path_prefix', 'port', 'scheme', 'url_prefix', 'use_ssl' options are allowed
