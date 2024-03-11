@@ -1,175 +1,176 @@
-GET elasticsearchweu:fluentd-common-prod/_search
-{
-  "aggs": {
-    "0": {
-      "date_histogram": {
-        "field": "@timestamp",
-        "calendar_interval": "1d",
-        "time_zone": "Asia/Colombo",
-        "extended_bounds": {
-          "min": 1704047400000,
-          "max": 1704133799000
-        }
-      },
-      "aggs": {
-        "1": {
-          "terms": {
-            "field": "kubernetes.cluster_name",
-            "order": {
-              "_count": "desc"
+from elasticsearch import Elasticsearch
+
+# Assume `es` is your Elasticsearch client instance
+# Make sure to configure `es` as shown in previous examples, including establishing any necessary SSH tunnel
+
+# Define the query as a Python dictionary
+query = {
+    "aggs": {
+        "0": {
+            "date_histogram": {
+                "field": "@timestamp",
+                "calendar_interval": "1d",
+                "time_zone": "Asia/Colombo",
+                "extended_bounds": {
+                    "min": 1704047400000,
+                    "max": 1704133799000
+                }
             },
-            "size": 3,
-            "shard_size": 25
-          },
-          "aggs": {
-            "2": {
-              "terms": {
-                "field": "projection",
-                "order": {
-                  "_count": "desc"
-                },
-                "size": 10000
-              },
-              "aggs": {
-                "3": {
-                  "terms": {
-                    "field": "entity",
-                    "order": {
-                      "_count": "desc"
-                    },
-                    "size": 10000
-                  },
-                  "aggs": {
-                    "4": {
-                      "terms": {
-                        "field": "method",
+            "aggs": {
+                "1": {
+                    "terms": {
+                        "field": "kubernetes.cluster_name",
                         "order": {
-                          "_count": "desc"
+                            "_count": "desc"
                         },
-                        "size": 10,
+                        "size": 3,
                         "shard_size": 25
-                      },
-                      "aggs": {
-                        "6": {
-                          "avg": {
-                            "field": "request_time"
-                          }
-                        },
-                        "7": {
-                          "sum": {
-                            "field": "request_time"
-                          }
+                    },
+                    "aggs": {
+                        "2": {
+                            "terms": {
+                                "field": "projection",
+                                "order": {
+                                    "_count": "desc"
+                                },
+                                "size": 10000
+                            },
+                            "aggs": {
+                                "3": {
+                                    "terms": {
+                                        "field": "entity",
+                                        "order": {
+                                            "_count": "desc"
+                                        },
+                                        "size": 10000
+                                    },
+                                    "aggs": {
+                                        "4": {
+                                            "terms": {
+                                                "field": "method",
+                                                "order": {
+                                                    "_count": "desc"
+                                                },
+                                                "size": 10,
+                                                "shard_size": 25
+                                            },
+                                            "aggs": {
+                                                "6": {
+                                                    "avg": {
+                                                        "field": "request_time"
+                                                    }
+                                                },
+                                                "7": {
+                                                    "sum": {
+                                                        "field": "request_time"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                      }
                     }
-                  }
                 }
-              }
             }
-          }
         }
-      }
-    }
-  },
-  "size": 0,
-  "fields": [
-    {
-      "field": "@timestamp",
-      "format": "date_time"
     },
-    {
-      "field": "_timestamp",
-      "format": "date_time"
-    },
-    {
-      "field": "ibm_datetime",
-      "format": "date_time"
-    },
-    {
-      "field": "timestamp",
-      "format": "date_time"
-    }
-  ],
-  "script_fields": {},
-  "stored_fields": [
-    "*"
-  ],
-  "runtime_mappings": {},
-  "_source": {
-    "excludes": []
-  },
-  "query": {
-    "bool": {
-      "must": [],
-      "filter": [
+    "size": 0,
+    "fields": [
         {
-          "bool": {
-            "filter": [
-              {
-                "bool": {
-                  "should": [
-                    {
-                      "term": {
-                        "kubernetes.cluster_name": {
-                          "value": "fugr-u1p-aks"
-                        }
-                      }
-                    }
-                  ],
-                  "minimum_should_match": 1
-                }
-              },
-              {
-                "bool": {
-                  "should": [
-                    {
-                      "exists": {
-                        "field": "projection"
-                      }
-                    }
-                  ],
-                  "minimum_should_match": 1
-                }
-              },
-              {
-                "bool": {
-                  "should": [
-                    {
-                      "exists": {
-                        "field": "entity"
-                      }
-                    }
-                  ],
-                  "minimum_should_match": 1
-                }
-              },
-              {
-                "bool": {
-                  "should": [
-                    {
-                      "exists": {
-                        "field": "method"
-                      }
-                    }
-                  ],
-                  "minimum_should_match": 1
-                }
-              }
-            ]
-          }
+            "field": "@timestamp",
+            "format": "date_time"
         },
         {
-          "range": {
-            "@timestamp": {
-              "format": "strict_date_optional_time",
-              "gte": "2023-12-31T18:30:00.000Z",
-              "lte": "2024-01-01T18:29:59.000Z"
-            }
-          }
+            "field": "_timestamp",
+            "format": "date_time"
+        },
+        {
+            "field": "ibm_datetime",
+            "format": "date_time"
+        },
+        {
+            "field": "timestamp",
+            "format": "date_time"
         }
-      ],
-      "should": [],
-      "must_not": []
+    ],
+    "query": {
+        "bool": {
+            "filter": [
+                {
+                    "bool": {
+                        "filter": [
+                            {
+                                "bool": {
+                                    "should": [
+                                        {
+                                            "term": {
+                                                "kubernetes.cluster_name": {
+                                                    "value": "fugr-u1p-aks"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "minimum_should_match": 1
+                                }
+                            },
+                            {
+                                "bool": {
+                                    "should": [
+                                        {
+                                            "exists": {
+                                                "field": "projection"
+                                            }
+                                        }
+                                    ],
+                                    "minimum_should_match": 1
+                                }
+                            },
+                            {
+                                "bool": {
+                                    "should": [
+                                        {
+                                            "exists": {
+                                                "field": "entity"
+                                            }
+                                        }
+                                    ],
+                                    "minimum_should_match": 1
+                                }
+                            },
+                            {
+                                "bool": {
+                                    "should": [
+                                        {
+                                            "exists": {
+                                                "field": "method"
+                                            }
+                                        }
+                                    ],
+                                    "minimum_should_match": 1
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "range": {
+                        "@timestamp": {
+                            "format": "strict_date_optional_time",
+                            "gte": "2023-12-31T18:30:00.000Z",
+                            "lte": "2024-01-01T18:29:59.000Z"
+                        }
+                    }
+                }
+            ]
+        }
     }
-  }
 }
+
+# Execute the search query against your Elasticsearch index
+index_name = "elasticsearchweu:fluentd-common-prod"
+result = es.search(index=index_name, body=query)
+
+# Process the result as needed
+print(result)
