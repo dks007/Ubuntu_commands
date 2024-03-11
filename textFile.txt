@@ -1,46 +1,175 @@
-from sshtunnel import SSHTunnelForwarder
-from elasticsearch import Elasticsearch
-
-# SSH tunnel connection details
-ssh_host = 'your.ssh.host.address'
-ssh_username = 'your_ssh_username'
-ssh_password = 'your_ssh_password'
-remote_elasticsearch_host = 'localhost'  # Assuming ES is running on localhost relative to the server
-remote_elasticsearch_port = 9200  # Default ES port
-
-# Local port to forward Elasticsearch requests to (choose any free port on your local machine)
-local_bind_port = 12345
-
-# Setup the SSH tunnel
-with SSHTunnelForwarder(
-    (ssh_host, 22),  # SSH server connection details
-    ssh_username=ssh_username,
-    ssh_password=ssh_password,
-    remote_bind_address=(remote_elasticsearch_host, remote_elasticsearch_port),
-    local_bind_address=('localhost', local_bind_port)  # Local forwarding address and port
-) as tunnel:
-    # Elasticsearch connection details with credentials
-    es_username = 'your_es_username'
-    es_password = 'your_es_password'
-    
-    # Now we create an Elasticsearch client configured to use the forwarded port
-    es = Elasticsearch(
-        hosts=[{'host': 'localhost', 'port': local_bind_port}],
-        basic_auth=(es_username, es_password),
-        scheme="http"  # or "https" based on your ES setup
-    )
-    
-    # Define your query here
-    query = {
-        "query": {
-            "match_all": {}
+GET elasticsearchweu:fluentd-common-prod/_search
+{
+  "aggs": {
+    "0": {
+      "date_histogram": {
+        "field": "@timestamp",
+        "calendar_interval": "1d",
+        "time_zone": "Asia/Colombo",
+        "extended_bounds": {
+          "min": 1704047400000,
+          "max": 1704133799000
         }
+      },
+      "aggs": {
+        "1": {
+          "terms": {
+            "field": "kubernetes.cluster_name",
+            "order": {
+              "_count": "desc"
+            },
+            "size": 3,
+            "shard_size": 25
+          },
+          "aggs": {
+            "2": {
+              "terms": {
+                "field": "projection",
+                "order": {
+                  "_count": "desc"
+                },
+                "size": 10000
+              },
+              "aggs": {
+                "3": {
+                  "terms": {
+                    "field": "entity",
+                    "order": {
+                      "_count": "desc"
+                    },
+                    "size": 10000
+                  },
+                  "aggs": {
+                    "4": {
+                      "terms": {
+                        "field": "method",
+                        "order": {
+                          "_count": "desc"
+                        },
+                        "size": 10,
+                        "shard_size": 25
+                      },
+                      "aggs": {
+                        "6": {
+                          "avg": {
+                            "field": "request_time"
+                          }
+                        },
+                        "7": {
+                          "sum": {
+                            "field": "request_time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
-    
-    # Execute the query
-    result = es.search(index="your_index_name", body=query)
-    
-    # Do something with the result
-    print(result)
-
-# The SSH tunnel is automatically closed here when exiting the 'with' block
+  },
+  "size": 0,
+  "fields": [
+    {
+      "field": "@timestamp",
+      "format": "date_time"
+    },
+    {
+      "field": "_timestamp",
+      "format": "date_time"
+    },
+    {
+      "field": "ibm_datetime",
+      "format": "date_time"
+    },
+    {
+      "field": "timestamp",
+      "format": "date_time"
+    }
+  ],
+  "script_fields": {},
+  "stored_fields": [
+    "*"
+  ],
+  "runtime_mappings": {},
+  "_source": {
+    "excludes": []
+  },
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "bool": {
+            "filter": [
+              {
+                "bool": {
+                  "should": [
+                    {
+                      "term": {
+                        "kubernetes.cluster_name": {
+                          "value": "fugr-u1p-aks"
+                        }
+                      }
+                    }
+                  ],
+                  "minimum_should_match": 1
+                }
+              },
+              {
+                "bool": {
+                  "should": [
+                    {
+                      "exists": {
+                        "field": "projection"
+                      }
+                    }
+                  ],
+                  "minimum_should_match": 1
+                }
+              },
+              {
+                "bool": {
+                  "should": [
+                    {
+                      "exists": {
+                        "field": "entity"
+                      }
+                    }
+                  ],
+                  "minimum_should_match": 1
+                }
+              },
+              {
+                "bool": {
+                  "should": [
+                    {
+                      "exists": {
+                        "field": "method"
+                      }
+                    }
+                  ],
+                  "minimum_should_match": 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "range": {
+            "@timestamp": {
+              "format": "strict_date_optional_time",
+              "gte": "2023-12-31T18:30:00.000Z",
+              "lte": "2024-01-01T18:29:59.000Z"
+            }
+          }
+        }
+      ],
+      "should": [],
+      "must_not": []
+    }
+  }
+}
