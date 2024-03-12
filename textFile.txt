@@ -1,176 +1,52 @@
-from elasticsearch import Elasticsearch
+from datetime import datetime
 
-# Assume `es` is your Elasticsearch client instance
-# Make sure to configure `es` as shown in previous examples, including establishing any necessary SSH tunnel
+def construct_payload(request):
+    startAt = int(request.GET.get('start', 0))  # Default value: 0
+    maxResults = int(request.GET.get('max_result', 20))  # Default value: 20
+    filterByCreatedDate = request.GET.get('filterByCreatedDate', False)  # Default value: False
+    startDate = request.GET.get('startDate')
+    endDate = request.GET.get('endDate')
+    sortBy = request.GET.get('sortBy', 'created')  # Default value: 'created'
+    order = request.GET.get('order', 'DESC')  # Default value: 'DESC'
+    issueType = request.GET.get('issueType', 'Sub-task, Task')  # Default value: 'Sub-task, Task'
+    issueKey = request.GET.get('issuekey', '')  # Filter by Issue Key
+    status = request.GET.get('status', "('Awaiting Customer', 'In Process', 'In Review', 'Not Started')")  # Default value for status
 
-# Define the query as a Python dictionary
-query = {
-    "aggs": {
-        "0": {
-            "date_histogram": {
-                "field": "@timestamp",
-                "calendar_interval": "1d",
-                "time_zone": "Asia/Colombo",
-                "extended_bounds": {
-                    "min": 1704047400000,
-                    "max": 1704133799000
-                }
-            },
-            "aggs": {
-                "1": {
-                    "terms": {
-                        "field": "kubernetes.cluster_name",
-                        "order": {
-                            "_count": "desc"
-                        },
-                        "size": 3,
-                        "shard_size": 25
-                    },
-                    "aggs": {
-                        "2": {
-                            "terms": {
-                                "field": "projection",
-                                "order": {
-                                    "_count": "desc"
-                                },
-                                "size": 10000
-                            },
-                            "aggs": {
-                                "3": {
-                                    "terms": {
-                                        "field": "entity",
-                                        "order": {
-                                            "_count": "desc"
-                                        },
-                                        "size": 10000
-                                    },
-                                    "aggs": {
-                                        "4": {
-                                            "terms": {
-                                                "field": "method",
-                                                "order": {
-                                                    "_count": "desc"
-                                                },
-                                                "size": 10,
-                                                "shard_size": 25
-                                            },
-                                            "aggs": {
-                                                "6": {
-                                                    "avg": {
-                                                        "field": "request_time"
-                                                    }
-                                                },
-                                                "7": {
-                                                    "sum": {
-                                                        "field": "request_time"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "size": 0,
-    "fields": [
-        {
-            "field": "@timestamp",
-            "format": "date_time"
-        },
-        {
-            "field": "_timestamp",
-            "format": "date_time"
-        },
-        {
-            "field": "ibm_datetime",
-            "format": "date_time"
-        },
-        {
-            "field": "timestamp",
-            "format": "date_time"
-        }
-    ],
-    "query": {
-        "bool": {
-            "filter": [
-                {
-                    "bool": {
-                        "filter": [
-                            {
-                                "bool": {
-                                    "should": [
-                                        {
-                                            "term": {
-                                                "kubernetes.cluster_name": {
-                                                    "value": "fugr-u1p-aks"
-                                                }
-                                            }
-                                        }
-                                    ],
-                                    "minimum_should_match": 1
-                                }
-                            },
-                            {
-                                "bool": {
-                                    "should": [
-                                        {
-                                            "exists": {
-                                                "field": "projection"
-                                            }
-                                        }
-                                    ],
-                                    "minimum_should_match": 1
-                                }
-                            },
-                            {
-                                "bool": {
-                                    "should": [
-                                        {
-                                            "exists": {
-                                                "field": "entity"
-                                            }
-                                        }
-                                    ],
-                                    "minimum_should_match": 1
-                                }
-                            },
-                            {
-                                "bool": {
-                                    "should": [
-                                        {
-                                            "exists": {
-                                                "field": "method"
-                                            }
-                                        }
-                                    ],
-                                    "minimum_should_match": 1
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    "range": {
-                        "@timestamp": {
-                            "format": "strict_date_optional_time",
-                            "gte": "2023-12-31T18:30:00.000Z",
-                            "lte": "2024-01-01T18:29:59.000Z"
-                        }
-                    }
-                }
-            ]
-        }
+    jql_parts = []
+
+    if issueType:
+        jql_parts.append(f"issuetype in ({issueType})")
+
+    if issueKey:
+        jql_parts.append(f"key in ({issueKey})")
+
+    if filterByCreatedDate == 'True' and startDate and endDate:
+        start_date_str = datetime.strptime(startDate, "%Y-%m-%d").strftime("%Y-%m-%d")
+        end_date_str = datetime.strptime(endDate, "%Y-%m-%d").strftime("%Y-%m-%d")
+        jql_parts.append(f"created >= '{start_date_str}' AND created <= '{end_date_str}'")
+
+    if status:
+        jql_parts.append(f"status in {status}")
+
+    jql_parts.append("'Service Category[Dropdown]' = 'Expert Services'")
+    jql_parts.append("assignee NOT in (EMPTY)")
+
+    # Joining all JQL parts with AND and adding order by clause
+    jql_query = " AND ".join(jql_parts) + f" order by {sortBy} {order}"
+
+    payload = {
+        "expand": ["changelog"],
+        "jql": jql_query,
+        "fieldsByKeys": False,
+        "fields": [
+            "summary", "description", "project", "customfield_16032",
+            "customfield_16015", "customfield_16036", "customfield_16262",
+            "customfield_16263", "customfield_16264", "customfield_16265",
+            "customfield_16266", "assignee", "issuetype", "status",
+            "parent", "created", "creator", "subtasks", "comment"
+        ],
+        "maxResults": maxResults,
+        "startAt": startAt
     }
-}
 
-# Execute the search query against your Elasticsearch index
-index_name = "elasticsearchweu:fluentd-common-prod"
-result = es.search(index=index_name, body=query)
-
-# Process the result as needed
-print(result)
+    return payload
